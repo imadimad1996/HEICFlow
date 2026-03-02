@@ -18,14 +18,27 @@ class HistoryService {
       return const <ExportSession>[];
     }
 
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    return decoded
-        .map(
-          (entry) => ExportSession.fromJson(
-            (entry as Map<dynamic, dynamic>).cast<String, dynamic>(),
-          ),
-        )
-        .toList();
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List<dynamic>) {
+        return const <ExportSession>[];
+      }
+
+      final sessions = <ExportSession>[];
+      for (final entry in decoded) {
+        if (entry is! Map<dynamic, dynamic>) {
+          continue;
+        }
+        try {
+          sessions.add(ExportSession.fromJson(entry.cast<String, dynamic>()));
+        } catch (_) {
+          // Ignore malformed session entries to keep history loading resilient.
+        }
+      }
+      return retainHistorySessions(sessions, limit: AppLimits.historyRetention);
+    } catch (_) {
+      return const <ExportSession>[];
+    }
   }
 
   Future<void> saveSessions(List<ExportSession> sessions) async {

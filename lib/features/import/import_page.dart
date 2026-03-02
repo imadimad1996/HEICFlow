@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../features/export/export_controller.dart';
 import '../../features/export/export_options_sheet.dart';
@@ -13,6 +14,7 @@ import '../../features/settings/settings_controller.dart';
 import '../../models/export_job.dart';
 import '../../models/media_item.dart';
 import '../../utils/constants.dart';
+import '../../utils/file_utils.dart';
 import '../../utils/format_utils.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/pulse_placeholder.dart';
@@ -27,23 +29,50 @@ class ImportPage extends ConsumerStatefulWidget {
 class _ImportPageState extends ConsumerState<ImportPage> {
   Future<void> _pickFiles() async {
     try {
+      final beforeCount = ref.read(mediaControllerProvider).items.length;
+
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
         type: FileType.any,
         withData: false,
+        withReadStream: true,
       );
 
       if (result == null) {
         return;
       }
 
-      final paths = result.files
-          .map((file) => file.path)
-          .whereType<String>()
-          .where((path) => path.isNotEmpty)
-          .toList(growable: false);
+      final paths = await _resolvePickedPaths(result);
+      if (!mounted) {
+        return;
+      }
+
+      if (paths.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No readable files were selected. Try picking from Files and retry.',
+            ),
+          ),
+        );
+        return;
+      }
 
       await ref.read(mediaControllerProvider.notifier).importPaths(paths);
+      if (!mounted) {
+        return;
+      }
+
+      final afterCount = ref.read(mediaControllerProvider).items.length;
+      if (afterCount == beforeCount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No files were added to the queue. The selected files may be inaccessible.',
+            ),
+          ),
+        );
+      }
     } catch (error) {
       if (!mounted) {
         return;
@@ -52,6 +81,71 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('File import failed: $error')));
     }
+  }
+
+  Future<List<String>> _resolvePickedPaths(FilePickerResult result) async {
+    final resolved = <String>[];
+    final tempDir = await ensureTempDirectory();
+
+    for (var index = 0; index < result.files.length; index++) {
+      try {
+        final picked = result.files[index];
+        final path = picked.path;
+
+        if (path != null && path.isNotEmpty) {
+          resolved.add(path);
+          continue;
+        }
+
+        final stream = picked.readStream;
+        if (stream != null) {
+          final tempPath = _tempImportPath(tempDir.path, picked.name, index);
+          final file = File(tempPath);
+          await file.create(recursive: true);
+          final sink = file.openWrite();
+          try {
+            await sink.addStream(stream);
+          } finally {
+            await sink.close();
+          }
+
+          if (file.existsSync()) {
+            resolved.add(tempPath);
+            continue;
+          }
+        }
+
+        final bytes = picked.bytes;
+        if (bytes != null && bytes.isNotEmpty) {
+          final tempPath = _tempImportPath(tempDir.path, picked.name, index);
+          final file = File(tempPath);
+          await file.writeAsBytes(bytes, flush: true);
+          if (file.existsSync()) {
+            resolved.add(tempPath);
+          }
+        }
+      } catch (_) {
+        // Skip files that cannot be materialized to a local path.
+      }
+    }
+
+    return resolved;
+  }
+
+  String _tempImportPath(String dirPath, String originalName, int index) {
+    final baseNameRaw = p.basenameWithoutExtension(originalName);
+    final safeBase = sanitizeFileName(baseNameRaw).replaceAll(
+      RegExp(r'^_+|_+$'),
+      '',
+    );
+    final ext = extensionFromPath(originalName);
+
+    final fallbackBase = safeBase.isEmpty ? 'imported' : safeBase;
+    final fallbackExt = ext.isEmpty ? 'bin' : ext;
+    final fileName =
+        '${fallbackBase}_${DateTime.now().microsecondsSinceEpoch}_$index.$fallbackExt';
+
+    return uniquePathInDirectory(Directory(dirPath), fileName);
   }
 
   Future<void> _showExportOptions() async {

@@ -61,43 +61,61 @@ class MediaController extends StateNotifier<MediaState> {
       return;
     }
 
+    if (state.isImporting) {
+      return;
+    }
+
     state = state.copyWith(isImporting: true);
 
     final freshItems = <MediaItem>[];
     final now = DateTime.now().microsecondsSinceEpoch;
 
-    for (var index = 0; index < paths.length; index++) {
-      final path = paths[index];
-      final file = File(path);
-      if (!file.existsSync()) {
-        continue;
+    try {
+      for (var index = 0; index < paths.length; index++) {
+        final path = paths[index];
+
+        try {
+          final file = File(path);
+          if (!file.existsSync()) {
+            _logger.w('Skipped missing import path: $path');
+            continue;
+          }
+
+          final stat = file.statSync();
+          final ext = extensionFromPath(path);
+          final supported = isSupportedInputPath(path);
+          final id = '${now}_${index}_$ext';
+
+          final item = MediaItem(
+            id: id,
+            originalPath: path,
+            displayName: p.basename(path),
+            ext: ext,
+            bytesSize: stat.size,
+            width: null,
+            height: null,
+            createdAt: stat.modified,
+            thumbPath: null,
+            status: supported
+                ? MediaItemStatus.idle
+                : MediaItemStatus.unsupported,
+            errorMessage: supported ? null : 'Unsupported file format',
+          );
+          freshItems.add(item);
+        } catch (error, stackTrace) {
+          _logger.w(
+            'Skipped unreadable import path: $path',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        }
       }
-
-      final stat = file.statSync();
-      final ext = extensionFromPath(path);
-      final supported = isSupportedInputPath(path);
-      final id = '${now}_${index}_$ext';
-
-      final item = MediaItem(
-        id: id,
-        originalPath: path,
-        displayName: p.basename(path),
-        ext: ext,
-        bytesSize: stat.size,
-        width: null,
-        height: null,
-        createdAt: stat.modified,
-        thumbPath: null,
-        status: supported ? MediaItemStatus.idle : MediaItemStatus.unsupported,
-        errorMessage: supported ? null : 'Unsupported file format',
+    } finally {
+      state = state.copyWith(
+        items: <MediaItem>[...state.items, ...freshItems],
+        isImporting: false,
       );
-      freshItems.add(item);
     }
-
-    state = state.copyWith(
-      items: <MediaItem>[...state.items, ...freshItems],
-      isImporting: false,
-    );
 
     for (final item in freshItems) {
       if (!item.isSupported) {
@@ -170,10 +188,19 @@ class MediaController extends StateNotifier<MediaState> {
   }
 
   Future<void> removeItem(String id) async {
-    final item = state.items.firstWhere(
-      (candidate) => candidate.id == id,
-      orElse: () => throw StateError('Item $id not found'),
-    );
+    MediaItem? item;
+    for (final candidate in state.items) {
+      if (candidate.id == id) {
+        item = candidate;
+        break;
+      }
+    }
+
+    if (item == null) {
+      _logger.w('Ignored removal for missing item id: $id');
+      return;
+    }
+
     await _thumbnailService.deleteThumbnail(item.thumbPath);
 
     final nextItems = state.items.where((entry) => entry.id != id).toList();

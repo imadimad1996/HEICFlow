@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
@@ -16,11 +17,18 @@ String extensionFromPath(String path) {
 
 bool isSupportedInputPath(String path) {
   final ext = extensionFromPath(path);
-  return ext == 'heic' ||
-      ext == 'heif' ||
-      ext == 'jpg' ||
-      ext == 'jpeg' ||
-      ext == 'png';
+  if (ext == 'heic' || ext == 'heif') {
+    return supportsHeifConversionOnCurrentPlatform();
+  }
+  return ext == 'jpg' || ext == 'jpeg' || ext == 'png';
+}
+
+bool supportsHeifConversionOnCurrentPlatform() {
+  if (kIsWeb) {
+    return false;
+  }
+  return defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
 }
 
 String formatBytes(int bytes) {

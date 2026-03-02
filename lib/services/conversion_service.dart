@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:heif_converter/heif_converter.dart';
 import 'package:image/image.dart' as img;
 import 'package:logger/logger.dart';
@@ -47,6 +48,11 @@ class ConversionService {
 
     try {
       if (sourceExt == 'heic' || sourceExt == 'heif') {
+        if (!supportsHeifConversionOnCurrentPlatform()) {
+          throw ConversionException(
+            'HEIC/HEIF conversion is only available on iOS and Android builds.',
+          );
+        }
         final converted = await HeifConverter.convert(
           sourcePath,
           output: outputPath,
@@ -87,6 +93,11 @@ class ConversionService {
       if (error is ConversionException) {
         rethrow;
       }
+      if (error is MissingPluginException) {
+        throw ConversionException(
+          'HEIC conversion plugin is not registered in this app build. Run a full rebuild.',
+        );
+      }
       throw ConversionException(
         'Conversion failed for ${p.basename(sourcePath)}.',
       );
@@ -99,15 +110,27 @@ class ConversionService {
   }) async {
     final ext = extensionFromPath(sourcePath);
     if (ext == 'heic' || ext == 'heif') {
+      if (!supportsHeifConversionOnCurrentPlatform()) {
+        throw ConversionException(
+          'HEIC/HEIF to PDF is only available on iOS and Android builds.',
+        );
+      }
       final outputPath = p.join(
         workingDirectory,
         '${p.basenameWithoutExtension(sourcePath)}_${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
-      final converted = await HeifConverter.convert(
-        sourcePath,
-        output: outputPath,
-        format: 'jpg',
-      );
+      String? converted;
+      try {
+        converted = await HeifConverter.convert(
+          sourcePath,
+          output: outputPath,
+          format: 'jpg',
+        );
+      } on MissingPluginException {
+        throw ConversionException(
+          'HEIC conversion plugin is not registered in this app build. Run a full rebuild.',
+        );
+      }
       if (converted == null || !File(converted).existsSync()) {
         throw ConversionException(
           'Could not prepare HEIC/HEIF file for PDF conversion.',

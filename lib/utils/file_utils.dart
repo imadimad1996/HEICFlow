@@ -2,12 +2,11 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import 'constants.dart';
 
 Future<Directory> _baseCacheDirectory() async {
-  final cache = await getTemporaryDirectory();
+  final cache = Directory.systemTemp;
   final root = Directory(p.join(cache.path, AppDirectories.root));
   if (!root.existsSync()) {
     root.createSync(recursive: true);
@@ -58,7 +57,11 @@ int directorySizeBytes(Directory dir) {
   var total = 0;
   for (final entity in dir.listSync(recursive: true, followLinks: false)) {
     if (entity is File) {
-      total += entity.lengthSync();
+      try {
+        total += entity.lengthSync();
+      } on FileSystemException {
+        // Skip files that disappear or become unreadable while scanning cache.
+      }
     }
   }
   return total;
@@ -71,10 +74,14 @@ Future<void> clearAppCache() async {
   }
 
   for (final entity in root.listSync()) {
-    if (entity is File) {
-      entity.deleteSync();
-    } else if (entity is Directory) {
-      entity.deleteSync(recursive: true);
+    try {
+      if (entity is File) {
+        entity.deleteSync();
+      } else if (entity is Directory) {
+        entity.deleteSync(recursive: true);
+      }
+    } on FileSystemException {
+      // Best-effort cache cleanup; continue deleting remaining entries.
     }
   }
 }
@@ -119,7 +126,11 @@ String uniquePathInDirectory(Directory dir, String desiredName) {
 
 Future<void> safeDeleteFile(String path) async {
   final file = File(path);
-  if (file.existsSync()) {
-    await file.delete();
+  try {
+    if (file.existsSync()) {
+      await file.delete();
+    }
+  } on FileSystemException {
+    // Ignore delete failures for temporary artifacts.
   }
 }

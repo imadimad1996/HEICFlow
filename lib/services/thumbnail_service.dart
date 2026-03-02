@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:heif_converter/heif_converter.dart';
 import 'package:image/image.dart' as img;
 import 'package:logger/logger.dart';
@@ -44,12 +45,23 @@ class ThumbnailService {
 
     try {
       if (item.ext == 'heic' || item.ext == 'heif') {
+        if (!supportsHeifConversionOnCurrentPlatform()) {
+          return null;
+        }
         temporaryConverted = p.join(thumbDir.path, '${item.id}_source.jpg');
-        final converted = await HeifConverter.convert(
-          item.originalPath,
-          output: temporaryConverted,
-          format: 'jpg',
-        );
+        String? converted;
+        try {
+          converted = await HeifConverter.convert(
+            item.originalPath,
+            output: temporaryConverted,
+            format: 'jpg',
+          );
+        } on MissingPluginException {
+          _logger.w(
+            'HEIC conversion plugin is not registered for thumbnail generation.',
+          );
+          return null;
+        }
         if (converted == null || !File(converted).existsSync()) {
           return null;
         }

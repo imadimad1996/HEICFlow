@@ -23,7 +23,7 @@ HEICFlow is a local-first Flutter app for iOS and Android that imports iPhone HE
 
 ## Tech Stack
 
-- Flutter stable (Dart 3.11+)
+- Flutter stable (Dart 3.10+)
 - State: `flutter_riverpod`
 - Routing: `go_router`
 - Picker: `file_picker`
@@ -93,6 +93,15 @@ flutter build ios
 
 - iOS 15+
 - Android 8+ (API 26+)
+
+## Platform Permissions
+
+- iOS (`Info.plist`):
+  - `NSPhotoLibraryUsageDescription`
+  - `NSPhotoLibraryAddUsageDescription`
+- Android (`AndroidManifest.xml`):
+  - `android.permission.READ_EXTERNAL_STORAGE` (`maxSdkVersion="32"`)
+  - `android.permission.READ_MEDIA_IMAGES` (Android 13+)
 
 ## Privacy
 
