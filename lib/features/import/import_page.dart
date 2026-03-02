@@ -148,10 +148,9 @@ class _ImportPageState extends ConsumerState<ImportPage> {
 
   String _tempImportPath(String dirPath, String originalName, int index) {
     final baseNameRaw = p.basenameWithoutExtension(originalName);
-    final safeBase = sanitizeFileName(baseNameRaw).replaceAll(
-      RegExp(r'^_+|_+$'),
-      '',
-    );
+    final safeBase = sanitizeFileName(
+      baseNameRaw,
+    ).replaceAll(RegExp(r'^_+|_+$'), '');
     final ext = extensionFromPath(originalName);
 
     final fallbackBase = safeBase.isEmpty ? 'imported' : safeBase;
@@ -173,6 +172,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         return ExportOptionsSheet(
           initialFormat: settings.defaultFormat,
@@ -206,88 +206,67 @@ class _ImportPageState extends ConsumerState<ImportPage> {
 
     final hasSelection = mediaState.selectedIds.isNotEmpty;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: <Color>[
-            Theme.of(context).colorScheme.surfaceContainerLowest,
-            Theme.of(context).colorScheme.surface,
-          ],
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.xs,
         ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          AppBrand.name,
-                          style: Theme.of(context).textTheme.headlineSmall,
+        child: Column(
+          children: <Widget>[
+            _ImportHero(
+              totalCount: mediaState.items.length,
+              selectedCount: mediaState.selectedIds.length,
+              importing: mediaState.isImporting,
+              onImport: mediaState.isImporting ? null : _pickFiles,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: mediaState.items.isEmpty
+                        ? null
+                        : mediaController.selectAllSupported,
+                    icon: const Icon(Icons.select_all_rounded),
+                    label: const Text('Select all'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: mediaState.items.isEmpty
+                        ? null
+                        : () async {
+                            await mediaController.clearAll();
+                          },
+                    icon: const Icon(Icons.delete_sweep_outlined),
+                    label: const Text('Clear queue'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 260),
+                child: mediaState.items.isEmpty
+                    ? EmptyState(
+                        icon: Icons.photo_library_outlined,
+                        title: 'Drop HEICs here',
+                        message:
+                            'Pick files from iPhone Photos or Files. Everything stays local on your device.',
+                        action: FilledButton.icon(
+                          onPressed: _pickFiles,
+                          icon: const Icon(Icons.upload_file_rounded),
+                          label: const Text('Pick files'),
                         ),
-                        Text(
-                          AppBrand.subtitle,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                  FilledButton.icon(
-                    onPressed: mediaState.isImporting ? null : _pickFiles,
-                    icon: const Icon(Icons.add_photo_alternate_outlined),
-                    label: const Text('Import'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: mediaState.items.isEmpty
-                          ? null
-                          : mediaController.selectAllSupported,
-                      icon: const Icon(Icons.select_all),
-                      label: const Text('Select all'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: mediaState.items.isEmpty
-                          ? null
-                          : () async {
-                              await mediaController.clearAll();
-                            },
-                      icon: const Icon(Icons.delete_outline),
-                      label: const Text('Clear queue'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 280),
-                  child: mediaState.items.isEmpty
-                      ? EmptyState(
-                          icon: Icons.photo_library_outlined,
-                          title: 'Drop HEICs here',
-                          message:
-                              'Pick files from iPhone Photos or Files. Everything stays local on your device.',
-                          action: FilledButton(
-                            onPressed: _pickFiles,
-                            child: const Text('Pick files'),
-                          ),
-                        )
-                      : ListView.separated(
+                      )
+                    : Card(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
                           itemCount: mediaState.items.length,
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: AppSpacing.xs),
@@ -310,26 +289,146 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                             );
                           },
                         ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: hasSelection && !exportState.isRunning
+                    ? _showExportOptions
+                    : null,
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: Text(
+                  hasSelection
+                      ? 'Convert ${mediaState.selectedIds.length} selected'
+                      : 'Select files to convert',
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: hasSelection && !exportState.isRunning
-                      ? _showExportOptions
-                      : null,
-                  icon: const Icon(Icons.auto_awesome_outlined),
-                  label: Text(
-                    hasSelection
-                        ? 'Convert ${mediaState.selectedIds.length} selected'
-                        : 'Select files to convert',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImportHero extends StatelessWidget {
+  const _ImportHero({
+    required this.totalCount,
+    required this.selectedCount,
+    required this.importing,
+    required this.onImport,
+  });
+
+  final int totalCount;
+  final int selectedCount;
+  final bool importing;
+  final VoidCallback? onImport;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        AppBrand.name,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        AppBrand.subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
+                FilledButton.icon(
+                  onPressed: onImport,
+                  icon: importing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.add_photo_alternate_outlined),
+                  label: Text(importing ? 'Importing' : 'Import'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: <Widget>[
+                _StatChip(
+                  icon: Icons.folder_copy_outlined,
+                  label: 'Queue',
+                  value: '$totalCount',
+                  color: scheme.secondaryContainer,
+                ),
+                _StatChip(
+                  icon: Icons.check_circle_outline_rounded,
+                  label: 'Selected',
+                  value: '$selectedCount',
+                  color: scheme.primaryContainer,
+                ),
+              ],
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  const _StatChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, size: 18),
+          const SizedBox(width: AppSpacing.xs),
+          Text('$label: ', style: textTheme.labelMedium),
+          Text(value, style: textTheme.labelLarge),
+        ],
       ),
     );
   }
@@ -356,50 +455,74 @@ class _ImportQueueTile extends StatelessWidget {
             ? item.originalPath
             : null);
 
-    return Card(
-      child: ListTile(
+    final scheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: selected
+          ? scheme.primaryContainer.withValues(alpha: 0.45)
+          : scheme.surfaceContainerLow.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        minTileHeight: 64,
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: SizedBox.square(
-            dimension: 52,
-            child: imagePath == null
-                ? const PulsePlaceholder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  )
-                : Image.file(
-                    File(imagePath),
-                    fit: BoxFit.cover,
-                    cacheWidth: 120,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const PulsePlaceholder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          child: Row(
+            children: <Widget>[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox.square(
+                  dimension: 54,
+                  child: imagePath == null
+                      ? const PulsePlaceholder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        )
+                      : Image.file(
+                          File(imagePath),
+                          fit: BoxFit.cover,
+                          cacheWidth: 120,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const PulsePlaceholder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                              ),
                         ),
-                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      item.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      '${formatBytes(item.bytesSize)} · ${mediaStatusLabel(item.status)}${item.errorMessage == null ? '' : ' · ${item.errorMessage}'}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              if (item.isSupported)
+                Checkbox(
+                  value: selected,
+                  onChanged: (checked) => onTap?.call(),
+                ),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.close_rounded),
+                tooltip: 'Remove file',
+              ),
+            ],
           ),
-        ),
-        title: Text(
-          item.displayName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '${formatBytes(item.bytesSize)} · ${mediaStatusLabel(item.status)}${item.errorMessage == null ? '' : ' · ${item.errorMessage}'}',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            if (item.isSupported)
-              Checkbox(value: selected, onChanged: (checked) => onTap?.call()),
-            IconButton(
-              onPressed: onDelete,
-              icon: const Icon(Icons.close),
-              tooltip: 'Remove file',
-            ),
-          ],
         ),
       ),
     );

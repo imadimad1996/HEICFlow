@@ -32,6 +32,7 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         return ExportOptionsSheet(
           initialFormat: settings.defaultFormat,
@@ -61,13 +62,13 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
     if (width < 700) {
       return 2;
     }
-    if (width < 1000) {
-      return 4;
+    if (width < 960) {
+      return 3;
     }
     if (width < 1300) {
-      return 5;
+      return 4;
     }
-    return 6;
+    return 5;
   }
 
   @override
@@ -102,42 +103,27 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.xs,
+        ),
         child: Column(
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    'Gallery',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-                IconButton.filledTonal(
-                  onPressed: items.isEmpty
-                      ? null
-                      : () {
-                          final next = !mediaState.selectionMode;
-                          mediaController.setSelectionMode(next);
-                        },
-                  icon: Icon(
-                    mediaState.selectionMode
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank,
-                  ),
-                  tooltip: mediaState.selectionMode
-                      ? 'Exit selection'
-                      : 'Selection mode',
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                IconButton.filledTonal(
-                  onPressed: items.isEmpty
-                      ? null
-                      : mediaController.selectAllSupported,
-                  icon: const Icon(Icons.select_all),
-                  tooltip: 'Select all',
-                ),
-              ],
+            _GalleryHero(
+              totalCount: items.length,
+              selectedCount: selectedIds.length,
+              selectionMode: mediaState.selectionMode,
+              onToggleSelection: items.isEmpty
+                  ? null
+                  : () {
+                      final next = !mediaState.selectionMode;
+                      mediaController.setSelectionMode(next);
+                    },
+              onSelectAll: items.isEmpty
+                  ? null
+                  : mediaController.selectAllSupported,
             ),
             const SizedBox(height: AppSpacing.sm),
             Expanded(
@@ -149,49 +135,53 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
                       title: 'No images yet',
                       message:
                           'Import HEIC/JPG/PNG files to build your gallery.',
-                      action: FilledButton(
+                      action: FilledButton.icon(
                         onPressed: () => context.go('/import'),
-                        child: const Text('Go to import'),
+                        icon: const Icon(Icons.upload_file_rounded),
+                        label: const Text('Go to import'),
                       ),
                     );
                   }
 
-                  final useDetailPane = constraints.maxWidth >= 1000;
-                  final grid = GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: _columnsForWidth(constraints.maxWidth),
-                      crossAxisSpacing: AppSpacing.sm,
-                      mainAxisSpacing: AppSpacing.sm,
-                      childAspectRatio: 0.8,
-                    ),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final selected = selectedIds.contains(item.id);
-                      return MediaCard(
-                        item: item,
-                        selected: selected,
-                        selectionMode: mediaState.selectionMode,
-                        onTap: () {
-                          setState(() {
-                            _focusedId = item.id;
-                          });
+                  final useDetailPane = constraints.maxWidth >= 1100;
+                  final grid = Card(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: _columnsForWidth(constraints.maxWidth),
+                        crossAxisSpacing: AppSpacing.sm,
+                        mainAxisSpacing: AppSpacing.sm,
+                        childAspectRatio: 0.78,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final selected = selectedIds.contains(item.id);
+                        return MediaCard(
+                          item: item,
+                          selected: selected,
+                          selectionMode: mediaState.selectionMode,
+                          onTap: () {
+                            setState(() {
+                              _focusedId = item.id;
+                            });
 
-                          if (mediaState.selectionMode) {
+                            if (mediaState.selectionMode) {
+                              mediaController.toggleSelection(item.id);
+                            } else {
+                              context.push('/viewer/${item.id}');
+                            }
+                          },
+                          onLongPress: () {
+                            setState(() {
+                              _focusedId = item.id;
+                            });
+                            mediaController.setSelectionMode(true);
                             mediaController.toggleSelection(item.id);
-                          } else {
-                            context.push('/viewer/${item.id}');
-                          }
-                        },
-                        onLongPress: () {
-                          setState(() {
-                            _focusedId = item.id;
-                          });
-                          mediaController.setSelectionMode(true);
-                          mediaController.toggleSelection(item.id);
-                        },
-                      );
-                    },
+                          },
+                        );
+                      },
+                    ),
                   );
 
                   if (!useDetailPane) {
@@ -219,12 +209,89 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
                 onPressed: selectedIds.isEmpty || exportState.isRunning
                     ? null
                     : () => _openExportSheet(selectedIds),
-                icon: const Icon(Icons.auto_fix_high),
+                icon: const Icon(Icons.auto_fix_high_rounded),
                 label: Text(
                   selectedIds.isEmpty
                       ? 'Select images to convert'
                       : 'Convert ${selectedIds.length} selected',
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GalleryHero extends StatelessWidget {
+  const _GalleryHero({
+    required this.totalCount,
+    required this.selectedCount,
+    required this.selectionMode,
+    required this.onToggleSelection,
+    required this.onSelectAll,
+  });
+
+  final int totalCount;
+  final int selectedCount;
+  final bool selectionMode;
+  final VoidCallback? onToggleSelection;
+  final VoidCallback? onSelectAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Gallery',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    '$totalCount ready files · $selectedCount selected',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+            IconButton.filledTonal(
+              onPressed: onToggleSelection,
+              icon: Icon(
+                selectionMode
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+              ),
+              tooltip: selectionMode ? 'Exit selection' : 'Selection mode',
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            IconButton.filledTonal(
+              onPressed: onSelectAll,
+              icon: const Icon(Icons.select_all_rounded),
+              tooltip: 'Select all',
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xs,
+              ),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$selectedCount',
+                style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
           ],
@@ -280,9 +347,9 @@ class _GalleryDetailPane extends StatelessWidget {
                   ? 'Unknown'
                   : formatDateTime(media.createdAt!),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const Spacer(),
             Text(
-              'Tip: long press to enter multi-select mode.',
+              'Tip: long press any card to quickly enter multi-select mode.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -304,9 +371,17 @@ class _MetadataRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
       child: Row(
         children: <Widget>[
-          SizedBox(width: 96, child: Text(label)),
+          SizedBox(
+            width: 96,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
           Expanded(
-            child: Text(value, maxLines: 2, overflow: TextOverflow.ellipsis),
+            child: Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
         ],
       ),

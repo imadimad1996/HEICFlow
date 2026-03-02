@@ -38,6 +38,15 @@ class MediaCard extends StatelessWidget {
       label: '${item.displayName} ${mediaStatusLabel(item.status)}',
       child: Card(
         clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: selected
+                ? colorScheme.primary.withValues(alpha: 0.5)
+                : colorScheme.outlineVariant.withValues(alpha: 0.22),
+            width: selected ? 1.6 : 1,
+          ),
+        ),
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,
@@ -59,24 +68,41 @@ class MediaCard extends StatelessWidget {
                         ),
                       ),
               ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: <Color>[
+                        Colors.black.withValues(alpha: 0.08),
+                        Colors.black.withValues(alpha: 0.58),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               Positioned(
                 left: AppSpacing.xs,
                 top: AppSpacing.xs,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: Container(
-                    key: ValueKey<String>('${item.id}_${item.status.name}'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs,
-                      vertical: AppSpacing.xxs,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: AppSpacing.xxs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.46),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      mediaStatusLabel(item.status),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                  ),
+                  child: Text(
+                    mediaStatusLabel(item.status),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -86,14 +112,14 @@ class MediaCard extends StatelessWidget {
                   right: AppSpacing.xs,
                   top: AppSpacing.xs,
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    width: 28,
-                    height: 28,
+                    duration: const Duration(milliseconds: 200),
+                    width: 30,
+                    height: 30,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: selected
                           ? colorScheme.primary
-                          : Colors.black.withValues(alpha: 0.45),
+                          : Colors.black.withValues(alpha: 0.42),
                       border: Border.all(color: Colors.white, width: 1.4),
                     ),
                     child: selected
@@ -106,23 +132,16 @@ class MediaCard extends StatelessWidget {
                   ),
                 ),
               Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: <Color>[Color(0x00000000), Color(0xAA000000)],
-                    ),
-                  ),
-                  child: Text(
-                    item.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white),
+                left: AppSpacing.sm,
+                right: AppSpacing.sm,
+                bottom: AppSpacing.sm,
+                child: Text(
+                  item.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

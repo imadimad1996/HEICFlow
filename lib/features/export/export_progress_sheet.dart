@@ -22,15 +22,40 @@ class ExportProgressSheet extends ConsumerWidget {
 
     final isRunning = job.state == ExportJobState.running;
     final progress = job.progress.clamp(0.0, 1.0);
+    final scheme = Theme.of(context).colorScheme;
 
     return SafeArea(
       top: false,
-      child: Padding(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          0,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
         padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: scheme.outlineVariant.withValues(alpha: 0.24),
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            Center(
+              child: Container(
+                width: 42,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               isRunning ? 'Processing conversion' : 'Export status',
               style: Theme.of(context).textTheme.titleLarge,
@@ -42,7 +67,10 @@ class ExportProgressSheet extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: AppSpacing.sm),
-            LinearProgressIndicator(value: isRunning ? progress : 1),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(value: isRunning ? progress : 1),
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               '${(progress * 100).round()}% · ${job.remaining ?? 0} remaining',

@@ -68,7 +68,15 @@ class _ViewerPageState extends ConsumerState<ViewerPage> {
     final current = items[_currentIndex.clamp(0, items.length - 1)];
 
     return Scaffold(
-      appBar: AppBar(title: Text('${_currentIndex + 1} of ${items.length}')),
+      backgroundColor: const Color(0xFF07090E),
+      appBar: AppBar(
+        backgroundColor: Colors.black.withValues(alpha: 0.35),
+        title: Text(
+          '${_currentIndex + 1} of ${items.length}',
+          style: const TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Column(
         children: <Widget>[
           Expanded(
@@ -92,7 +100,10 @@ class _ViewerPageState extends ConsumerState<ViewerPage> {
 
                 if (imagePath == null) {
                   return const Center(
-                    child: Text('Preview unavailable for this file.'),
+                    child: Text(
+                      'Preview unavailable for this file.',
+                      style: TextStyle(color: Colors.white70),
+                    ),
                   );
                 }
 
@@ -179,8 +190,9 @@ class _MetadataPanel extends StatelessWidget {
       duration: const Duration(milliseconds: 220),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -189,24 +201,59 @@ class _MetadataPanel extends StatelessWidget {
         children: <Widget>[
           Text(
             item.displayName,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.xs),
           Wrap(
             spacing: AppSpacing.md,
             runSpacing: AppSpacing.xs,
             children: <Widget>[
-              Text('Type: ${item.ext.toUpperCase()}'),
-              Text('Size: ${formatBytes(item.bytesSize)}'),
-              Text(
-                'Dimensions: ${item.width == null || item.height == null ? 'Unknown' : '${item.width} × ${item.height}'}',
+              _ViewerChip(label: 'Type', value: item.ext.toUpperCase()),
+              _ViewerChip(label: 'Size', value: formatBytes(item.bytesSize)),
+              _ViewerChip(
+                label: 'Dimensions',
+                value: item.width == null || item.height == null
+                    ? 'Unknown'
+                    : '${item.width} × ${item.height}',
               ),
-              Text(
-                'Date: ${item.createdAt == null ? 'Unknown' : formatDateTime(item.createdAt!)}',
+              _ViewerChip(
+                label: 'Date',
+                value: item.createdAt == null
+                    ? 'Unknown'
+                    : formatDateTime(item.createdAt!),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ViewerChip extends StatelessWidget {
+  const _ViewerChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '$label: $value',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Colors.white.withValues(alpha: 0.86),
+        ),
       ),
     );
   }
