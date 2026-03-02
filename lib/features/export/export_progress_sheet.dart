@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/providers.dart';
 import '../../models/export_job.dart';
 import '../../utils/constants.dart';
 import 'export_controller.dart';
@@ -104,9 +105,15 @@ class ExportProgressSheet extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        controller.resetState();
-                        onClose();
+                      onPressed: () async {
+                        await ref
+                            .read(interstitialAdServiceProvider)
+                            .showIfEligible(
+                              onContinue: () {
+                                controller.resetState();
+                                onClose();
+                              },
+                            );
                       },
                       child: const Text('Close'),
                     ),

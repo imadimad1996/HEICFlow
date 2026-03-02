@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
@@ -78,6 +80,8 @@ class ExportController extends StateNotifier<ExportQueueState> {
     if (selectedItems.isEmpty) {
       return;
     }
+
+    unawaited(_ref.read(interstitialAdServiceProvider).initializeAndPreload());
 
     final settings = _ref.read(settingsControllerProvider);
     final exportService = _ref.read(exportServiceProvider);
@@ -181,6 +185,8 @@ class ExportController extends StateNotifier<ExportQueueState> {
     }
 
     if (result.outputPaths.isNotEmpty) {
+      _ref.read(interstitialAdServiceProvider).markCompletedExportEligible();
+
       final session = ExportSession(
         id: 'session_${now.microsecondsSinceEpoch}',
         timestamp: now,

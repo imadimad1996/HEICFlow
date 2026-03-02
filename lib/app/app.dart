@@ -1,18 +1,37 @@
+import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'providers.dart';
 import '../features/settings/settings_controller.dart';
 import '../utils/constants.dart';
 import 'router.dart';
 import 'theme.dart';
 
-class HEICFlowApp extends ConsumerWidget {
+class HEICFlowApp extends ConsumerStatefulWidget {
   const HEICFlowApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HEICFlowApp> createState() => _HEICFlowAppState();
+}
+
+class _HEICFlowAppState extends ConsumerState<HEICFlowApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(ref.read(appOpenAdServiceProvider).start());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsControllerProvider);
     final router = ref.watch(appRouterProvider);
 

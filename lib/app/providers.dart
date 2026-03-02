@@ -3,8 +3,11 @@ import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/conversion_service.dart';
+import '../services/app_open_ad_service.dart';
 import '../services/export_service.dart';
+import '../services/full_screen_ad_guard.dart';
 import '../services/history_service.dart';
+import '../services/interstitial_ad_service.dart';
 import '../services/pdf_service.dart';
 import '../services/thumbnail_service.dart';
 
@@ -49,4 +52,26 @@ final exportServiceProvider = Provider<ExportService>((ref) {
     ref.watch(pdfServiceProvider),
     ref.watch(loggerProvider),
   );
+});
+
+final fullScreenAdGuardProvider = Provider<FullScreenAdGuard>((ref) {
+  return FullScreenAdGuard();
+});
+
+final interstitialAdServiceProvider = Provider<InterstitialAdService>((ref) {
+  final service = InterstitialAdService(
+    ref.watch(loggerProvider),
+    ref.watch(fullScreenAdGuardProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+final appOpenAdServiceProvider = Provider<AppOpenAdService>((ref) {
+  final service = AppOpenAdService(
+    ref.watch(loggerProvider),
+    ref.watch(fullScreenAdGuardProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
 });
