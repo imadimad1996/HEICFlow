@@ -93,6 +93,7 @@ flutter build ios
 
 - iOS 15+
 - Android 8+ (API 26+)
+- Web is currently not supported for local file conversion.
 
 ## Platform Permissions
 

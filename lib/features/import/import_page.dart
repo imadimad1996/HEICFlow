@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -28,6 +29,19 @@ class ImportPage extends ConsumerStatefulWidget {
 
 class _ImportPageState extends ConsumerState<ImportPage> {
   Future<void> _pickFiles() async {
+    if (kIsWeb) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Web file conversion is not supported in this build. Use Android or iOS.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     try {
       final beforeCount = ref.read(mediaControllerProvider).items.length;
 

@@ -1,11 +1,18 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
 import 'constants.dart';
 
 Future<Directory> _baseCacheDirectory() async {
+  if (kIsWeb) {
+    throw UnsupportedError(
+      'Local file-system directories are unavailable on web.',
+    );
+  }
+
   final cache = Directory.systemTemp;
   final root = Directory(p.join(cache.path, AppDirectories.root));
   if (!root.existsSync()) {
@@ -42,6 +49,10 @@ Future<Directory> ensureTempDirectory() async {
 }
 
 Future<int> cacheDirectorySizeBytes() async {
+  if (kIsWeb) {
+    return 0;
+  }
+
   final root = await _baseCacheDirectory();
   if (!root.existsSync()) {
     return 0;
@@ -68,6 +79,10 @@ int directorySizeBytes(Directory dir) {
 }
 
 Future<void> clearAppCache() async {
+  if (kIsWeb) {
+    return;
+  }
+
   final root = await _baseCacheDirectory();
   if (!root.existsSync()) {
     return;
@@ -125,6 +140,10 @@ String uniquePathInDirectory(Directory dir, String desiredName) {
 }
 
 Future<void> safeDeleteFile(String path) async {
+  if (kIsWeb) {
+    return;
+  }
+
   final file = File(path);
   try {
     if (file.existsSync()) {
