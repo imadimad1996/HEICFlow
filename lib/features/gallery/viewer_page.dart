@@ -7,6 +7,7 @@ import '../../features/media/media_controller.dart';
 import '../../models/media_item.dart';
 import '../../utils/constants.dart';
 import '../../utils/format_utils.dart';
+import '../../widgets/inline_native_ad.dart';
 
 class ViewerPage extends ConsumerStatefulWidget {
   const ViewerPage({super.key, required this.initialId});
@@ -115,6 +116,18 @@ class _ViewerPageState extends ConsumerState<ViewerPage> {
             ),
           ),
           _MetadataPanel(item: current),
+          const SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              child: InlineNativeAd(),
+            ),
+          ),
         ],
       ),
     );

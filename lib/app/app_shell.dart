@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../utils/constants.dart';
+import '../widgets/inline_native_ad.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child, required this.location});
@@ -53,6 +54,8 @@ class AppShell extends StatelessWidget {
     context.go(_paths[index]);
   }
 
+  bool get _showInlineAd => !location.startsWith('/settings');
+
   @override
   Widget build(BuildContext context) {
     final selectedIndex = _indexFromLocation();
@@ -65,11 +68,26 @@ class AppShell extends StatelessWidget {
         child: useRail
             ? _RailLayout(
                 selectedIndex: selectedIndex,
+                showInlineAd: _showInlineAd,
                 child: child,
                 onDestinationSelected: (index) =>
                     _onDestinationSelected(context, index),
               )
-            : child,
+            : Column(
+                children: <Widget>[
+                  Expanded(child: child),
+                  if (_showInlineAd)
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        0,
+                        AppSpacing.md,
+                        AppSpacing.xs,
+                      ),
+                      child: InlineNativeAd(),
+                    ),
+                ],
+              ),
       ),
       bottomNavigationBar: useRail
           ? null
@@ -85,11 +103,13 @@ class AppShell extends StatelessWidget {
 class _RailLayout extends StatelessWidget {
   const _RailLayout({
     required this.selectedIndex,
+    required this.showInlineAd,
     required this.child,
     required this.onDestinationSelected,
   });
 
   final int selectedIndex;
+  final bool showInlineAd;
   final Widget child;
   final ValueChanged<int> onDestinationSelected;
 
@@ -152,7 +172,21 @@ class _RailLayout extends StatelessWidget {
                 borderRadius: BorderRadius.circular(28),
                 child: ColoredBox(
                   color: scheme.surface.withValues(alpha: 0.35),
-                  child: child,
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(child: child),
+                      if (showInlineAd)
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.md,
+                            0,
+                            AppSpacing.md,
+                            AppSpacing.md,
+                          ),
+                          child: InlineNativeAd(),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

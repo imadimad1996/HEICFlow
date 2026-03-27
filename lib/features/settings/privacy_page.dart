@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/constants.dart';
+import '../../widgets/inline_native_ad.dart';
 
 class PrivacyPage extends StatelessWidget {
   const PrivacyPage({super.key});
@@ -39,6 +40,8 @@ class PrivacyPage extends StatelessWidget {
               body:
                   'You can clear cached files at any time from Settings > Storage > Clear cache.',
             ),
+            SizedBox(height: AppSpacing.md),
+            InlineNativeAd(),
           ],
         ),
       ),
