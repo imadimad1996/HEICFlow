@@ -330,6 +330,28 @@ class _ImportHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(AppBrand.name, style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          AppBrand.subtitle,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
+    );
+    final importButton = FilledButton.icon(
+      onPressed: onImport,
+      icon: importing
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.add_photo_alternate_outlined),
+      label: Text(importing ? 'Importing' : 'Import'),
+    );
 
     return Card(
       child: Padding(
@@ -337,37 +359,30 @@ class _ImportHero extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compactLayout = constraints.maxWidth < 520;
+
+                if (compactLayout) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text(
-                        AppBrand.name,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        AppBrand.subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      titleBlock,
+                      const SizedBox(height: AppSpacing.md),
+                      importButton,
                     ],
-                  ),
-                ),
-                FilledButton.icon(
-                  onPressed: onImport,
-                  icon: importing
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.add_photo_alternate_outlined),
-                  label: Text(importing ? 'Importing' : 'Import'),
-                ),
-              ],
+                  );
+                }
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(child: titleBlock),
+                    const SizedBox(width: AppSpacing.md),
+                    importButton,
+                  ],
+                );
+              },
             ),
             const SizedBox(height: AppSpacing.md),
             Wrap(
