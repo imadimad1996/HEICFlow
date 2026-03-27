@@ -14,6 +14,7 @@ import '../../models/media_item.dart';
 import '../../utils/constants.dart';
 import '../../utils/format_utils.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/inline_native_ad.dart';
 import '../../widgets/media_card.dart';
 
 class GalleryPage extends ConsumerStatefulWidget {
@@ -217,6 +218,8 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
                 ),
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            const InlineNativeAd(),
           ],
         ),
       ),

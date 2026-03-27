@@ -7,6 +7,7 @@ Future<void> showExportProgressSheet(BuildContext context) {
     context: context,
     isDismissible: false,
     enableDrag: false,
+    isScrollControlled: true,
     builder: (sheetContext) {
       return ExportProgressSheet(
         onClose: () {

@@ -18,6 +18,7 @@ import '../../utils/constants.dart';
 import '../../utils/file_utils.dart';
 import '../../utils/format_utils.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/inline_native_ad.dart';
 import '../../widgets/pulse_placeholder.dart';
 
 class ImportPage extends ConsumerStatefulWidget {
@@ -267,10 +268,17 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                     : Card(
                         child: ListView.separated(
                           padding: const EdgeInsets.all(AppSpacing.sm),
-                          itemCount: mediaState.items.length,
+                          itemCount: mediaState.items.length + 1,
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: AppSpacing.xs),
                           itemBuilder: (context, index) {
+                            if (index == mediaState.items.length) {
+                              return const Padding(
+                                padding: EdgeInsets.only(top: AppSpacing.xs),
+                                child: InlineNativeAd(),
+                              );
+                            }
+
                             final item = mediaState.items[index];
                             final selected = mediaState.selectedIds.contains(
                               item.id,
@@ -335,10 +343,7 @@ class _ImportHero extends StatelessWidget {
       children: <Widget>[
         Text(AppBrand.name, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: AppSpacing.xxs),
-        Text(
-          AppBrand.subtitle,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text(AppBrand.subtitle, style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
     final importButton = FilledButton.icon(

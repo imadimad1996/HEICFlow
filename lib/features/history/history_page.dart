@@ -9,6 +9,7 @@ import '../../models/export_session.dart';
 import '../../utils/constants.dart';
 import '../../utils/format_utils.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/inline_native_ad.dart';
 import 'history_controller.dart';
 
 class HistoryPage extends ConsumerWidget {
@@ -107,16 +108,30 @@ class HistoryPage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.sm),
             Expanded(
               child: sessions.isEmpty
-                  ? const EmptyState(
-                      icon: Icons.history_toggle_off,
-                      title: 'No exports yet',
-                      message: 'Your last 20 export sessions will appear here.',
+                  ? ListView(
+                      children: const <Widget>[
+                        EmptyState(
+                          icon: Icons.history_toggle_off,
+                          title: 'No exports yet',
+                          message:
+                              'Your last 20 export sessions will appear here.',
+                        ),
+                        SizedBox(height: AppSpacing.sm),
+                        InlineNativeAd(),
+                      ],
                     )
                   : ListView.separated(
-                      itemCount: sessions.length,
+                      itemCount: sessions.length + 1,
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: AppSpacing.xs),
                       itemBuilder: (context, index) {
+                        if (index == sessions.length) {
+                          return const Padding(
+                            padding: EdgeInsets.only(top: AppSpacing.xs),
+                            child: InlineNativeAd(),
+                          );
+                        }
+
                         final session = sessions[index];
                         final title =
                             '${exportFormatLabel(session.format)} · ${session.count} file(s)';

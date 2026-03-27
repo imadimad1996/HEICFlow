@@ -78,7 +78,10 @@ class InterstitialAdService {
     _eligibleToShow = true;
   }
 
-  Future<void> showIfEligible({required VoidCallback onContinue}) async {
+  Future<void> showIfEligible({
+    required VoidCallback onContinue,
+    bool retainEligibilityOnMiss = false,
+  }) async {
     if (!_isSupportedPlatform) {
       onContinue();
       return;
@@ -93,7 +96,9 @@ class InterstitialAdService {
 
     final now = DateTime.now();
     if (_lastShownAt != null && now.difference(_lastShownAt!) < _showCooldown) {
-      _eligibleToShow = false;
+      if (!retainEligibilityOnMiss) {
+        _eligibleToShow = false;
+      }
       _loadInterstitial();
       onContinue();
       return;
@@ -101,19 +106,25 @@ class InterstitialAdService {
 
     final ad = _interstitialAd;
     if (ad == null || _showing) {
-      _eligibleToShow = false;
+      if (!retainEligibilityOnMiss) {
+        _eligibleToShow = false;
+      }
       _loadInterstitial();
       onContinue();
       return;
     }
     if (_guard.isShowing || _guard.recentlyDismissed(_crossFormatCooldown)) {
-      _eligibleToShow = false;
+      if (!retainEligibilityOnMiss) {
+        _eligibleToShow = false;
+      }
       _loadInterstitial();
       onContinue();
       return;
     }
     if (!_guard.tryAcquire()) {
-      _eligibleToShow = false;
+      if (!retainEligibilityOnMiss) {
+        _eligibleToShow = false;
+      }
       _loadInterstitial();
       onContinue();
       return;
@@ -147,6 +158,9 @@ class InterstitialAdService {
         ad.dispose();
         _interstitialAd = null;
         _showing = false;
+        if (retainEligibilityOnMiss) {
+          _eligibleToShow = true;
+        }
         _guard.release();
         _loadInterstitial();
         continueOnce();
@@ -159,6 +173,9 @@ class InterstitialAdService {
       _logger.w('Interstitial show exception: $error');
       _logger.d(stackTrace.toString());
       _showing = false;
+      if (retainEligibilityOnMiss) {
+        _eligibleToShow = true;
+      }
       _guard.release();
       _interstitialAd?.dispose();
       _interstitialAd = null;
