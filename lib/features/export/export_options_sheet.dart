@@ -36,13 +36,16 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
 
     return SafeArea(
       top: false,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          0,
-          AppSpacing.md,
-          AppSpacing.md,
-        ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.sm,
@@ -155,6 +158,8 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

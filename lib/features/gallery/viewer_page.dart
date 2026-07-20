@@ -164,6 +164,11 @@ class _ZoomableImageState extends State<_ZoomableImage> {
 
   @override
   Widget build(BuildContext context) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final maxCacheWidth =
+        (screenWidth * devicePixelRatio * 2).clamp(1080.0, 4096.0).toInt();
+
     return GestureDetector(
       onDoubleTap: _handleDoubleTap,
       child: InteractiveViewer(
@@ -176,6 +181,7 @@ class _ZoomableImageState extends State<_ZoomableImage> {
           child: Image.file(
             File(widget.imagePath),
             fit: BoxFit.contain,
+            cacheWidth: maxCacheWidth,
             filterQuality: FilterQuality.medium,
             errorBuilder: (context, error, stackTrace) {
               return const Center(

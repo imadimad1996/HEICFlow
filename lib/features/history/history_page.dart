@@ -201,11 +201,31 @@ class HistoryPage extends ConsumerWidget {
                                                 _openLocation(context, session),
                                           ),
                                           ActionChip(
-                                            avatar: const Icon(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .errorContainer
+                                                .withValues(alpha: 0.6),
+                                            side: BorderSide(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error
+                                                  .withValues(alpha: 0.3),
+                                            ),
+                                            avatar: Icon(
                                               Icons.delete_outline_rounded,
                                               size: 16,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onErrorContainer,
                                             ),
-                                            label: const Text('Delete'),
+                                            label: Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onErrorContainer,
+                                              ),
+                                            ),
                                             onPressed: () async {
                                               await ref
                                                   .read(
