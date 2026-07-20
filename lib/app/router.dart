@@ -5,14 +5,25 @@ import '../features/gallery/gallery_page.dart';
 import '../features/gallery/viewer_page.dart';
 import '../features/history/history_page.dart';
 import '../features/import/import_page.dart';
+import '../features/onboarding/onboarding_page.dart';
 import '../features/settings/privacy_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/settings/settings_controller.dart';
 import 'app_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final hasSeenOnboarding = ref.watch(
+    settingsControllerProvider.select((s) => s.hasSeenOnboarding),
+  );
+
   return GoRouter(
-    initialLocation: '/import',
+    initialLocation: hasSeenOnboarding ? '/import' : '/onboarding',
     routes: <RouteBase>[
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
       ShellRoute(
         builder: (context, state, child) {
           return AppShell(location: state.uri.toString(), child: child);

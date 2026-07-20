@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../app/providers.dart';
 import '../../models/export_job.dart';
 import '../../models/export_session.dart';
+import '../../services/rating_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/format_utils.dart';
 import '../history/history_controller.dart';
@@ -185,6 +186,7 @@ class ExportController extends StateNotifier<ExportQueueState> {
     }
 
     if (result.outputPaths.isNotEmpty) {
+      _ref.read(ratingServiceProvider).recordSuccessfulExport(result.outputPaths.length);
       _ref.read(interstitialAdServiceProvider).markCompletedExportEligible();
 
       final session = ExportSession(
