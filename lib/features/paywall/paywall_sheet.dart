@@ -289,7 +289,7 @@ class _PlanCard extends StatelessWidget {
                 badge,
                 style: TextStyle(
                   fontSize: 9,
-                  fontWeight: FontWeight.black,
+                  fontWeight: FontWeight.w900,
                   color: selected ? scheme.onPrimary : scheme.onSecondaryContainer,
                 ),
               ),
