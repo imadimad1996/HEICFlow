@@ -8,12 +8,13 @@ const __dirname = path.dirname(__filename);
 
 // The path to your Google Play Service Account JSON key
 const KEY_PATH = process.env.PLAY_STORE_CREDENTIALS_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS || 'C:\\Users\\DeLL\\.config\\play-service-account.json';
+const CREDENTIALS_JSON = process.env.PLAY_STORE_CREDENTIALS_JSON;
 const PACKAGE_NAME = process.env.PACKAGE_NAME || 'com.heicflow.heicflow';
 const TRACK = process.env.TRACK || 'alpha'; // default to 'alpha' for closed testing
 
 async function uploadAab() {
-  if (!fs.existsSync(KEY_PATH)) {
-    console.error(`🚨 ERROR: Service account key not found at ${KEY_PATH}`);
+  if (!CREDENTIALS_JSON && !fs.existsSync(KEY_PATH)) {
+    console.error(`🚨 ERROR: Service account key not found at ${KEY_PATH} and PLAY_STORE_CREDENTIALS_JSON is not set`);
     process.exit(1);
   }
 
@@ -25,10 +26,17 @@ async function uploadAab() {
   }
 
   console.log('Authenticating with Google Play Developer API...');
-  const auth = new google.auth.GoogleAuth({
-    keyFile: KEY_PATH,
+  const authOptions: any = {
     scopes: ['https://www.googleapis.com/auth/androidpublisher']
-  });
+  };
+
+  if (CREDENTIALS_JSON) {
+    authOptions.credentials = JSON.parse(CREDENTIALS_JSON);
+  } else {
+    authOptions.keyFile = KEY_PATH;
+  }
+
+  const auth = new google.auth.GoogleAuth(authOptions);
 
   const authClient = await auth.getClient();
   const androidPublisher = google.androidpublisher({
