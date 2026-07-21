@@ -1,0 +1,16 @@
+Convert iPhone HEIC and HEIF photos to JPG, PNG, or PDF formats in seconds—100% on-device, fast, and completely private!
+
+HEICFlow is the ultimate batch photo converter designed to process your high-efficiency photos locally on your phone without uploading your private images to external servers.
+
+🌟 KEY FEATURES:
+• BATCH CONVERT: Select and convert dozens of HEIC/HEIF files simultaneously to JPG or PNG.
+• PDF MERGER: Combine multiple HEIC photos into a clean, single PDF document for easy sharing.
+• 100% PRIVATE & OFFLINE: Your photos never leave your device. Conversion is performed on-device using local decoders.
+• QUALITY CONTROL: Adjust JPEG compression quality (60% to 100%) to balance file size and clarity.
+• EXIF PRESERVATION: Retain original photo dates, resolution, and metadata.
+• RECENT HISTORY: Keep track of your last 20 export sessions to re-share or open converted files instantly.
+
+WHY CHOOSE HEICFLOW?
+Standard online HEIC converters require uploading your personal photos to third-party servers. HEICFlow provides 100% local processing with zero data tracking, making it the fastest and safest converter for iOS and Android.
+
+Download HEICFlow today and simplify your photo sharing across all devices!
