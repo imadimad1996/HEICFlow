@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../paywall/paywall_sheet.dart';
 import '../../models/export_job.dart';
 import '../../utils/constants.dart';
 import '../../utils/format_utils.dart';
@@ -50,65 +49,6 @@ class SettingsPage extends ConsumerWidget {
                   Icon(
                     Icons.tune_rounded,
                     color: Theme.of(context).colorScheme.primary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Card(
-            color: settings.isPro
-                ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5)
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.workspace_premium_rounded,
-                    size: 32,
-                    color: settings.isPro
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          settings.isPro ? 'HEICFlow Pro Active' : 'Upgrade to HEICFlow Pro',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          settings.isPro
-                              ? 'Unlimited conversions · Ad-free'
-                              : 'Unlock unlimited batching & remove ads',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  FilledButton.tonal(
-                    onPressed: () {
-                      if (!settings.isPro) {
-                        showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => const PaywallSheet(),
-                        );
-                      } else {
-                        controller.setIsPro(false);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Switched to Free tier for testing.')),
-                        );
-                      }
-                    },
-                    child: Text(settings.isPro ? 'Manage' : 'Upgrade'),
                   ),
                 ],
               ),

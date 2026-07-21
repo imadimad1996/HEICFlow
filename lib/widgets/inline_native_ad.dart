@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../features/settings/settings_controller.dart';
 import '../utils/constants.dart';
 
 enum InlineNativeAdSize { small, medium }
 
-class InlineNativeAd extends StatefulWidget {
+class InlineNativeAd extends ConsumerStatefulWidget {
   const InlineNativeAd({
     super.key,
     this.size = InlineNativeAdSize.small,
@@ -15,10 +17,10 @@ class InlineNativeAd extends StatefulWidget {
   final InlineNativeAdSize size;
 
   @override
-  State<InlineNativeAd> createState() => _InlineNativeAdState();
+  ConsumerState<InlineNativeAd> createState() => _InlineNativeAdState();
 }
 
-class _InlineNativeAdState extends State<InlineNativeAd> {
+class _InlineNativeAdState extends ConsumerState<InlineNativeAd> {
   static const String _productionAdUnitId =
       'ca-app-pub-2847412250241292/5885385759';
   static const String _androidTestAdUnitId =

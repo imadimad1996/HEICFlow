@@ -15,7 +15,6 @@ class AppSettings {
     required this.defaultJpgQuality,
     required this.keepTemporaryFiles,
     required this.hasSeenOnboarding,
-    required this.isPro,
   });
 
   final ThemeMode themeMode;
@@ -23,7 +22,6 @@ class AppSettings {
   final int defaultJpgQuality;
   final bool keepTemporaryFiles;
   final bool hasSeenOnboarding;
-  final bool isPro;
 
   AppSettings copyWith({
     ThemeMode? themeMode,
@@ -31,7 +29,6 @@ class AppSettings {
     int? defaultJpgQuality,
     bool? keepTemporaryFiles,
     bool? hasSeenOnboarding,
-    bool? isPro,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -39,7 +36,6 @@ class AppSettings {
       defaultJpgQuality: defaultJpgQuality ?? this.defaultJpgQuality,
       keepTemporaryFiles: keepTemporaryFiles ?? this.keepTemporaryFiles,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
-      isPro: isPro ?? this.isPro,
     );
   }
 }
@@ -53,7 +49,6 @@ class SettingsController extends StateNotifier<AppSettings> {
           defaultJpgQuality: _readJpgQuality(_prefs),
           keepTemporaryFiles: _prefs.getBool(_kKeepTempKey) ?? false,
           hasSeenOnboarding: _prefs.getBool(_kHasSeenOnboardingKey) ?? false,
-          isPro: _prefs.getBool(_kIsProKey) ?? false,
         ),
       );
 
@@ -64,16 +59,10 @@ class SettingsController extends StateNotifier<AppSettings> {
   static const String _kJpgQualityKey = 'settings_jpg_quality';
   static const String _kKeepTempKey = 'settings_keep_temp';
   static const String _kHasSeenOnboardingKey = 'settings_has_seen_onboarding';
-  static const String _kIsProKey = 'settings_is_pro';
 
   void completeOnboarding() {
     state = state.copyWith(hasSeenOnboarding: true);
     _prefs.setBool(_kHasSeenOnboardingKey, true);
-  }
-
-  void setIsPro(bool value) {
-    state = state.copyWith(isPro: value);
-    _prefs.setBool(_kIsProKey, value);
   }
 
   void setThemeMode(ThemeMode mode) {

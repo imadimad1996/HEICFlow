@@ -11,7 +11,6 @@ import '../../features/export/export_controller.dart';
 import '../../features/export/export_options_sheet.dart';
 import '../../features/export/export_sheet_helpers.dart';
 import '../../features/media/media_controller.dart';
-import '../../features/paywall/paywall_sheet.dart';
 import '../../features/settings/settings_controller.dart';
 import '../../models/export_job.dart';
 import '../../models/media_item.dart';
@@ -170,18 +169,6 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     }
 
     final settings = ref.read(settingsControllerProvider);
-
-    if (!settings.isPro && media.selectedIds.length > 3) {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (sheetContext) => const PaywallSheet(
-          triggerReason: 'Free tier limit: 3 files per batch. Upgrade to Pro for unlimited conversions!',
-        ),
-      );
-      return;
-    }
 
     await showModalBottomSheet<void>(
       context: context,

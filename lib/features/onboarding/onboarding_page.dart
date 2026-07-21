@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../paywall/paywall_sheet.dart';
 import '../settings/settings_controller.dart';
 import '../../utils/constants.dart';
 
@@ -58,16 +57,6 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     HapticFeedback.mediumImpact();
     ref.read(settingsControllerProvider.notifier).completeOnboarding();
     context.go('/import');
-    
-    // Trigger soft paywall offer immediately after onboarding
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const PaywallSheet(
-        triggerReason: 'Special Welcome Offer: 3 Days Free Trial',
-      ),
-    );
   }
 
   @override
