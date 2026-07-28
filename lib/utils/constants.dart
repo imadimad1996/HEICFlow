@@ -45,3 +45,12 @@ const Set<String> kSupportedInputExtensions = {
 
 const int kTabletBreakpoint = 900;
 const int kLargeTabletBreakpoint = 1200;
+
+class AppBreakpoints {
+  const AppBreakpoints._();
+
+  static const double compact = 520;
+  static const double medium = 700;
+  static const double large = 960;
+  static const double extraLarge = 1300;
+}

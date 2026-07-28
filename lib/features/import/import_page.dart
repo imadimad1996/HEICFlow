@@ -237,11 +237,32 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: TextButton.icon(
                     onPressed: mediaState.items.isEmpty
                         ? null
                         : () async {
-                            await mediaController.clearAll();
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Clear queue?'),
+                                content: Text(
+                                  'Remove all ${mediaState.items.length} items from the queue?',
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Clear'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true) {
+                              await mediaController.clearAll();
+                            }
                           },
                     icon: const Icon(Icons.delete_sweep_outlined),
                     label: const Text('Clear queue'),
@@ -467,6 +488,16 @@ class _ImportQueueTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback onDelete;
 
+  Color _statusColor(BuildContext context, MediaItemStatus status) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch (status) {
+      MediaItemStatus.done => Colors.green.shade400,
+      MediaItemStatus.error => scheme.error,
+      MediaItemStatus.canceled => scheme.outline,
+      _ => Colors.transparent,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final imagePath =
@@ -477,71 +508,97 @@ class _ImportQueueTile extends StatelessWidget {
 
     final scheme = Theme.of(context).colorScheme;
 
-    return Material(
-      color: selected
-          ? scheme.primaryContainer.withValues(alpha: 0.45)
-          : scheme.surfaceContainerLow.withValues(alpha: 0.5),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+    return Container(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          child: Row(
-            children: <Widget>[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox.square(
-                  dimension: 54,
-                  child: imagePath == null
-                      ? const PulsePlaceholder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        )
-                      : Image.file(
-                          File(imagePath),
-                          fit: BoxFit.cover,
-                          cacheWidth: 120,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const PulsePlaceholder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(12),
+        border: Border(
+          left: BorderSide(
+            color: _statusColor(context, item.status),
+            width: 3.5,
+          ),
+        ),
+      ),
+      child: Material(
+        color: selected
+            ? scheme.primaryContainer.withValues(alpha: 0.45)
+            : scheme.surfaceContainerLow.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            child: Row(
+              children: <Widget>[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox.square(
+                    dimension: 54,
+                    child: imagePath == null
+                        ? (item.isSupported
+                            ? const PulsePlaceholder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(12)),
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  color: scheme.errorContainer.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ),
-                        ),
+                                child: Icon(
+                                  Icons.block_rounded,
+                                  color: scheme.error,
+                                  size: 26,
+                                ),
+                              ))
+                        : Image.file(
+                            File(imagePath),
+                            fit: BoxFit.cover,
+                            cacheWidth: 120,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const PulsePlaceholder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                ),
+                          ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      item.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      '${formatBytes(item.bytesSize)} · ${mediaStatusLabel(item.status)}${item.errorMessage == null ? '' : ' · ${item.errorMessage}'}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        '${formatBytes(item.bytesSize)} · ${mediaStatusLabel(item.status)}${item.errorMessage == null ? '' : ' · ${item.errorMessage}'}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (item.isSupported)
-                Checkbox(
-                  value: selected,
-                  onChanged: (checked) => onTap?.call(),
+                if (item.isSupported)
+                  Checkbox(
+                    value: selected,
+                    onChanged: (checked) => onTap?.call(),
+                  ),
+                IconButton(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Remove file',
                 ),
-              IconButton(
-                onPressed: onDelete,
-                icon: const Icon(Icons.close_rounded),
-                tooltip: 'Remove file',
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

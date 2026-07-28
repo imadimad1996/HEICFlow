@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 ThemeData buildLightTheme(ColorScheme colorScheme) {
   return _buildTheme(colorScheme, Brightness.light);
@@ -13,6 +14,9 @@ ThemeData _buildTheme(ColorScheme scheme, Brightness brightness) {
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
+    textTheme: GoogleFonts.interTextTheme(
+      ThemeData(brightness: brightness).textTheme,
+    ),
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
 

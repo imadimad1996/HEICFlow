@@ -23,21 +23,18 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       title: '100% On-Device Privacy',
       subtitle:
           'Your photos are converted locally on your phone. No cloud uploads, no server delays, and zero privacy risks.',
-      color: Colors.blueAccent,
     ),
     _OnboardingSlideData(
       icon: Icons.offline_bolt_outlined,
       title: 'Lightning Batch Export',
       subtitle:
           'Convert dozens of HEIC & HEIF images into JPG, PNG, or combined PDF documents in just a single tap.',
-      color: Colors.purpleAccent,
     ),
     _OnboardingSlideData(
       icon: Icons.high_quality_outlined,
       title: 'Original Quality Preserved',
       subtitle:
           'Fine-tune output resolution, compression quality, and EXIF metadata retention with full control.',
-      color: Colors.tealAccent,
     ),
   ];
 
@@ -46,10 +43,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     if (_currentPage < _slides.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        curve: Curves.easeInOutCubicEmphasized,
       );
     } else {
       _finishOnboarding();
+    }
+  }
+
+  void _prevPage() {
+    HapticFeedback.lightImpact();
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubicEmphasized,
+      );
     }
   }
 
@@ -63,6 +70,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final slideColors = <Color>[
+      scheme.primary,
+      scheme.secondary,
+      scheme.tertiary,
+    ];
 
     return Scaffold(
       body: SafeArea(
@@ -70,12 +82,22 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             children: <Widget>[
-              Align(
-                alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: _finishOnboarding,
-                  child: const Text('Skip'),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  if (_currentPage > 0)
+                    IconButton(
+                      onPressed: _prevPage,
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      tooltip: 'Previous',
+                    )
+                  else
+                    const SizedBox(width: 48),
+                  TextButton(
+                    onPressed: _finishOnboarding,
+                    child: const Text('Skip'),
+                  ),
+                ],
               ),
               Expanded(
                 child: PageView.builder(
@@ -86,6 +108,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   itemCount: _slides.length,
                   itemBuilder: (context, index) {
                     final slide = _slides[index];
+                    final color = slideColors[index % slideColors.length];
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -93,10 +116,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                           width: 120,
                           height: 120,
                           decoration: BoxDecoration(
-                            color: slide.color.withValues(alpha: 0.15),
+                            color: color.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(slide.icon, size: 60, color: slide.color),
+                          child: Icon(slide.icon, size: 60, color: color),
                         ),
                         const SizedBox(height: AppSpacing.xl),
                         Text(
@@ -167,11 +190,9 @@ class _OnboardingSlideData {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.color,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
 }

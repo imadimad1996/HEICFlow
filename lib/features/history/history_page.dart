@@ -62,9 +62,174 @@ class HistoryPage extends ConsumerWidget {
     }
   }
 
+  Map<String, List<ExportSession>> _groupByDate(List<ExportSession> sessions) {
+    final now = DateTime.now();
+    final today = DateUtils.dateOnly(now);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final groups = <String, List<ExportSession>>{};
+    for (final session in sessions) {
+      final date = DateUtils.dateOnly(session.timestamp);
+      final key = date == today
+          ? 'Today'
+          : date == yesterday
+              ? 'Yesterday'
+              : 'Earlier';
+      groups.putIfAbsent(key, () => <ExportSession>[]).add(session);
+    }
+    return groups;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(historyControllerProvider);
+
+    final grouped = _groupByDate(sessions);
+    final historyItems = <Widget>[];
+
+    for (final entry in grouped.entries) {
+      historyItems.add(
+        Padding(
+          padding: const EdgeInsets.only(
+            top: AppSpacing.xs,
+            bottom: AppSpacing.xxs,
+          ),
+          child: Text(
+            entry.key,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+      );
+
+      for (final session in entry.value) {
+        final title =
+            '${exportFormatLabel(session.format)} · ${session.count} file(s)';
+        historyItems.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: Dismissible(
+              key: ValueKey(session.id),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  Icons.delete_outline_rounded,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+              confirmDismiss: (_) async {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Delete history entry?'),
+                    content: const Text(
+                      'This will remove this record from your history.',
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              onDismissed: (_) async {
+                await ref
+                    .read(historyControllerProvider.notifier)
+                    .deleteSession(session.id);
+              },
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.auto_awesome_rounded,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              formatDateTime(session.timestamp),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Wrap(
+                              spacing: AppSpacing.xs,
+                              runSpacing: AppSpacing.xs,
+                              children: <Widget>[
+                                ActionChip(
+                                  avatar: const Icon(
+                                    Icons.ios_share,
+                                    size: 16,
+                                  ),
+                                  label: const Text('Re-share'),
+                                  onPressed: () async =>
+                                      _reshare(context, ref, session),
+                                ),
+                                ActionChip(
+                                  avatar: const Icon(
+                                    Icons.folder_open_rounded,
+                                    size: 16,
+                                  ),
+                                  label: const Text('Open'),
+                                  onPressed: () async =>
+                                      _openLocation(context, session),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    historyItems.add(
+      const Padding(
+        padding: EdgeInsets.only(top: AppSpacing.xs),
+        child: InlineNativeAd(),
+      ),
+    );
 
     return SafeArea(
       child: Padding(
@@ -120,131 +285,8 @@ class HistoryPage extends ConsumerWidget {
                         InlineNativeAd(),
                       ],
                     )
-                  : ListView.separated(
-                      itemCount: sessions.length + 1,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: AppSpacing.xs),
-                      itemBuilder: (context, index) {
-                        if (index == sessions.length) {
-                          return const Padding(
-                            padding: EdgeInsets.only(top: AppSpacing.xs),
-                            child: InlineNativeAd(),
-                          );
-                        }
-
-                        final session = sessions[index];
-                        final title =
-                            '${exportFormatLabel(session.format)} · ${session.count} file(s)';
-
-                        return Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.sm),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.auto_awesome_rounded,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(
-                                        title,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall,
-                                      ),
-                                      const SizedBox(height: AppSpacing.xxs),
-                                      Text(
-                                        formatDateTime(session.timestamp),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall,
-                                      ),
-                                      const SizedBox(height: AppSpacing.xs),
-                                      Wrap(
-                                        spacing: AppSpacing.xs,
-                                        runSpacing: AppSpacing.xs,
-                                        children: <Widget>[
-                                          ActionChip(
-                                            avatar: const Icon(
-                                              Icons.ios_share,
-                                              size: 16,
-                                            ),
-                                            label: const Text('Re-share'),
-                                            onPressed: () async =>
-                                                _reshare(context, ref, session),
-                                          ),
-                                          ActionChip(
-                                            avatar: const Icon(
-                                              Icons.folder_open_rounded,
-                                              size: 16,
-                                            ),
-                                            label: const Text('Open'),
-                                            onPressed: () async =>
-                                                _openLocation(context, session),
-                                          ),
-                                          ActionChip(
-                                            backgroundColor: Theme.of(context)
-                                                .colorScheme
-                                                .errorContainer
-                                                .withValues(alpha: 0.6),
-                                            side: BorderSide(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .error
-                                                  .withValues(alpha: 0.3),
-                                            ),
-                                            avatar: Icon(
-                                              Icons.delete_outline_rounded,
-                                              size: 16,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onErrorContainer,
-                                            ),
-                                            label: Text(
-                                              'Delete',
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onErrorContainer,
-                                              ),
-                                            ),
-                                            onPressed: () async {
-                                              await ref
-                                                  .read(
-                                                    historyControllerProvider
-                                                        .notifier,
-                                                  )
-                                                  .deleteSession(session.id);
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                  : ListView(
+                      children: historyItems,
                     ),
             ),
           ],

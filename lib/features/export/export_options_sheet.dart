@@ -122,6 +122,16 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
                   });
                 },
               ),
+              Text(
+                _quality < 75
+                    ? 'Smaller file, higher compression'
+                    : _quality < 90
+                        ? 'Balanced — recommended'
+                        : 'Best quality, larger file',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
             ],
             if (_format == ExportTargetFormat.pdf) ...<Widget>[
               const SizedBox(height: AppSpacing.md),
@@ -132,10 +142,12 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
                 segments: const <ButtonSegment<PdfMode>>[
                   ButtonSegment<PdfMode>(
                     value: PdfMode.combined,
+                    icon: Icon(Icons.picture_as_pdf_rounded),
                     label: Text('Combined'),
                   ),
                   ButtonSegment<PdfMode>(
                     value: PdfMode.separate,
+                    icon: Icon(Icons.filter_none_rounded),
                     label: Text('Separate'),
                   ),
                 ],

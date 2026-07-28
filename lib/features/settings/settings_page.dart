@@ -135,6 +135,16 @@ class SettingsPage extends ConsumerWidget {
                     onChanged: (value) =>
                         controller.setDefaultJpgQuality(value.round()),
                   ),
+                  Text(
+                    settings.defaultJpgQuality < 75
+                        ? 'Smaller file, higher compression'
+                        : settings.defaultJpgQuality < 90
+                            ? 'Balanced — recommended'
+                            : 'Best quality, larger file',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     value: settings.keepTemporaryFiles,
@@ -193,7 +203,7 @@ class SettingsPage extends ConsumerWidget {
               minTileHeight: 56,
               leading: const Icon(Icons.privacy_tip_outlined),
               title: const Text('Privacy'),
-              subtitle: const Text('Learn how local processing works.'),
+              subtitle: const Text('Your photos never leave your device.'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/privacy'),
             ),

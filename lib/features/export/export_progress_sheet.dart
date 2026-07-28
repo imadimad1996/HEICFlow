@@ -101,14 +101,37 @@ class _ExportProgressSheetState extends ConsumerState<ExportProgressSheet> {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                '${(progress * 100).round()}% · ${job.remaining ?? 0} remaining',
+                '${job.selectedIds.length - (job.remaining ?? 0)} of ${job.selectedIds.length} files · ${(progress * 100).round()}%',
               ),
               const SizedBox(height: AppSpacing.lg),
               if (isRunning)
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: controller.cancelActiveJob,
+                    onPressed: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Cancel export?'),
+                          content: const Text(
+                            'Files converted so far will not be saved.',
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Continue'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Cancel export'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true) {
+                        controller.cancelActiveJob();
+                      }
+                    },
                     icon: const Icon(Icons.cancel_outlined),
                     label: const Text('Cancel'),
                   ),

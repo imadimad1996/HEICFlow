@@ -59,14 +59,34 @@ class _GalleryPageState extends ConsumerState<GalleryPage> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      final items = ref
+          .read(mediaControllerProvider)
+          .items
+          .where((i) => i.isSupported)
+          .toList();
+      if (items.isNotEmpty && _focusedId == null) {
+        setState(() {
+          _focusedId = items.first.id;
+        });
+      }
+    });
+  }
+
   int _columnsForWidth(double width) {
-    if (width < 700) {
+    if (width < AppBreakpoints.medium) {
       return 2;
     }
-    if (width < 960) {
+    if (width < AppBreakpoints.large) {
       return 3;
     }
-    if (width < 1300) {
+    if (width < AppBreakpoints.extraLarge) {
       return 4;
     }
     return 5;

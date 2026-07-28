@@ -47,7 +47,7 @@ class _HEICFlowAppState extends ConsumerState<HEICFlowApp> {
         final darkScheme =
             darkDynamic ??
             ColorScheme.fromSeed(
-              seedColor: const Color(0xFF9B2226),
+              seedColor: const Color(0xFF7B61FF),
               brightness: Brightness.dark,
             );
 

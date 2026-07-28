@@ -16,8 +16,8 @@ class _PulsePlaceholderState extends State<PulsePlaceholder>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1200),
-  )..repeat(reverse: true);
+    duration: const Duration(milliseconds: 1400),
+  )..repeat();
 
   @override
   void dispose() {
@@ -32,14 +32,18 @@ class _PulsePlaceholderState extends State<PulsePlaceholder>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final t = _controller.value;
+        final value = _controller.value;
         return DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: widget.borderRadius,
-            color: Color.lerp(
-              scheme.surfaceContainerHighest,
-              scheme.surfaceContainer,
-              t,
+            gradient: LinearGradient(
+              begin: Alignment(-1.5 + 3 * value, -0.5),
+              end: Alignment(-0.5 + 3 * value, 0.5),
+              colors: <Color>[
+                scheme.surfaceContainerLow,
+                scheme.surfaceContainerHigh,
+                scheme.surfaceContainerLow,
+              ],
             ),
           ),
           child: child,
