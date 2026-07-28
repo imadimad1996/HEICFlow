@@ -7,6 +7,7 @@ import 'package:heicflow/features/gallery/gallery_page.dart';
 import 'package:heicflow/features/media/media_controller.dart';
 import 'package:heicflow/models/media_item.dart';
 import 'package:heicflow/services/thumbnail_service.dart';
+import 'package:heicflow/widgets/media_card.dart';
 
 class _TestMediaController extends MediaController {
   _TestMediaController() : super(ThumbnailService(Logger()), Logger());
@@ -51,7 +52,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('one.jpg'));
+    await tester.tap(find.byType(MediaCard));
     await tester.pump();
 
     expect(controller.state.selectedIds.contains('one'), isTrue);

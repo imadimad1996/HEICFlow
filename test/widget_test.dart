@@ -7,7 +7,7 @@ import 'package:heicflow/app/providers.dart';
 
 void main() {
   testWidgets('app boots to import flow', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    SharedPreferences.setMockInitialValues(<String, Object>{'settings_has_seen_onboarding': true});
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
