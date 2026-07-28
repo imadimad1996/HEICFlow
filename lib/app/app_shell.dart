@@ -231,20 +231,20 @@ class _AuroraBackground extends StatelessWidget {
             ),
           ),
         ),
-        RepaintBoundary(
-          child: Positioned(
-            top: -120,
-            right: -80,
+        Positioned(
+          top: -120,
+          right: -80,
+          child: RepaintBoundary(
             child: _GlowCircle(
               diameter: 280,
               color: scheme.primary.withValues(alpha: 0.16),
             ),
           ),
         ),
-        RepaintBoundary(
-          child: Positioned(
-            bottom: -150,
-            left: -120,
+        Positioned(
+          bottom: -150,
+          left: -120,
+          child: RepaintBoundary(
             child: _GlowCircle(
               diameter: 320,
               color: scheme.tertiary.withValues(alpha: 0.14),

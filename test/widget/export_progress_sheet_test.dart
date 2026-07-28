@@ -48,7 +48,10 @@ void main() {
     expect(find.textContaining('40%'), findsOneWidget);
 
     await tester.tap(find.text('Cancel'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cancel export'));
+    await tester.pumpAndSettle();
 
     final container = ProviderScope.containerOf(
       tester.element(find.byType(ExportProgressSheet)),
