@@ -21,7 +21,7 @@ class InlineNativeAd extends ConsumerStatefulWidget {
 
 class _InlineNativeAdState extends ConsumerState<InlineNativeAd> {
   static const String _productionAdUnitId =
-      'ca-app-pub-2847412250241292/5885385759';
+      'ca-app-pub-7102695194621911/7227533109';
   static const String _androidTestAdUnitId =
       'ca-app-pub-3940256099942544/2247696110';
   static const String _iosTestAdUnitId =

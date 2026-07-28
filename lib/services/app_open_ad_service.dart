@@ -11,7 +11,7 @@ class AppOpenAdService {
 
   // Production App Open unit for HEICFlow.
   static const String _productionAdUnitId =
-      'ca-app-pub-2847412250241292/8255373151';
+      'ca-app-pub-7102695194621911/4182687507';
 
   // Official Google test App Open IDs for non-release builds.
   static const String _androidTestAdUnitId =

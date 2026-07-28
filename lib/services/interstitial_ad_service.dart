@@ -9,7 +9,7 @@ class InterstitialAdService {
 
   // Production interstitial provided for HEICFlow.
   static const String _productionAdUnitId =
-      'ca-app-pub-2847412250241292/1244755010';
+      'ca-app-pub-7102695194621911/9158993657';
 
   // Official Google test interstitial IDs for non-release builds.
   static const String _androidTestAdUnitId =

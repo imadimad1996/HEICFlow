@@ -27,7 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-2847412250241292~6099681787</string>
+	<string>ca-app-pub-7102695194621911~3479859787</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>HEICFlow reads photos you select to convert them locally on your device.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
